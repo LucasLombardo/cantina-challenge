@@ -17,6 +17,29 @@ const checkForMatch = (node, query) => {
   return false;
 };
 
+// flattens a single level array
+const flatten = arr => arr.reduce((acc, val) => acc.concat(val), []);
+
+// collects an array values for each node in tree, JSON for matches and empty strings for non matches
+const collectMatches = (node, query) => {
+  const currMatch = checkForMatch(node, query) ? [node] : [``];
+  // base case: no more subviews
+  if (!node.subviews && !node.contentView) {
+    return currMatch;
+  }
+  // recurse down through subviews
+  const subviews = node.subviews || node.contentView.subviews;
+  return subviews
+    .map(subview => flatten(collectMatches(subview, query)))
+    .concat(currMatch);
+};
+
+// finds an array of matching nodes
+const findMatches = (node, query) => {
+  const results = flatten(collectMatches(node, query));
+  return results.filter(result => result !== "");
+};
+
 // Initialize CLI
 const cli = readline.createInterface({
   input: process.stdin,
@@ -30,6 +53,6 @@ cli.on(`line`, input => {
     cli.close();
     return;
   }
-  console.log(checkForMatch(data.subviews[0], input));
+  console.log(findMatches(data, input));
   console.log(`Enter another selector to search again:`);
 });
