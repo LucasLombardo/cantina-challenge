@@ -1,47 +1,48 @@
 const readline = require(`readline`);
-const data = require("./data.json");
+const data = require(`./data.json`);
 
 // Checks if a node matches the given query
 const checkForMatch = (node, query) => {
   // check if class matches
   if (query === node.class) return true;
 
-  // check if class names match
+  // check if classNames match
   const isClass = query[0] === `.`;
   const isClassMatch = node.classNames && node.classNames.includes(query.slice(1));
   if (isClass && isClassMatch) return true;
 
-  // check for identifier match
+  // check if identifier matches
   const isId = query[0] === `#`;
   const isIdMatch = query.slice(1) === node.identifier;
   if (isId && isIdMatch) return true;
 
-  // if no matches return false
+  // if no matches found return false
   return false;
 };
 
-// flattens a single level array
+// Helper function to flatten a single level array
 const flatten = arr => arr.reduce((acc, val) => acc.concat(val), []);
 
-// collects an array values for each node in tree, JSON for matches and empty strings for non matches
+// Collects all matches to a given query and empty strings for non-matching nodes
 const collectMatches = (node, query) => {
-  const currMatch = checkForMatch(node, query) ? [node] : [``];
+  // set current node to an empty string if it isn't a match
+  const currNode = checkForMatch(node, query) ? [node] : [``];
 
-  // base case: no more subviews (subviews in 3 buckets, `subviews`, `contentView`, and `control`)
+  // base case: no more subviews to traverse
+  // (subviews can be in 3 buckets, `subviews`, `contentView`, or `control`)
   if (!node.subviews && !node.contentView && !node.control) {
-    return currMatch;
+    return currNode;
   }
 
-  // recurse down through subviews
+  // recurse down through subviews, adding current node to result
   const contentView = node.contentView && node.contentView.subviews;
   const subviews = node.subviews || contentView || [node.control];
-
   return subviews
     .map(subview => flatten(collectMatches(subview, query)))
-    .concat(currMatch);
+    .concat(currNode);
 };
 
-// finds an array of matching nodes
+// Returns an array matching nodes for a given query
 const findMatches = (node, query) => {
   const results = flatten(collectMatches(node, query));
   return results.filter(result => result !== "");
