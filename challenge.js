@@ -5,14 +5,17 @@ const data = require("./data.json");
 const checkForMatch = (node, query) => {
   // check if class matches
   if (query === node.class) return true;
+
   // check if class names match
   const isClass = query[0] === `.`;
   const isClassMatch = node.classNames && node.classNames.includes(query.slice(1));
   if (isClass && isClassMatch) return true;
+
   // check for identifier match
   const isId = query[0] === `#`;
   const isIdMatch = query.slice(1) === node.identifier;
   if (isId && isIdMatch) return true;
+
   // if no matches return false
   return false;
 };
@@ -23,12 +26,16 @@ const flatten = arr => arr.reduce((acc, val) => acc.concat(val), []);
 // collects an array values for each node in tree, JSON for matches and empty strings for non matches
 const collectMatches = (node, query) => {
   const currMatch = checkForMatch(node, query) ? [node] : [``];
-  // base case: no more subviews
-  if (!node.subviews && !node.contentView) {
+
+  // base case: no more subviews (subviews in 3 buckets, `subviews`, `contentView`, and `control`)
+  if (!node.subviews && !node.contentView && !node.control) {
     return currMatch;
   }
+
   // recurse down through subviews
-  const subviews = node.subviews || node.contentView.subviews;
+  const contentView = node.contentView && node.contentView.subviews
+  const subviews = node.subviews || contentView || [node.control];
+
   return subviews
     .map(subview => flatten(collectMatches(subview, query)))
     .concat(currMatch);
