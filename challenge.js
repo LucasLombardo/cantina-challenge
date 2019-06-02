@@ -33,7 +33,7 @@ const collectMatches = (node, query) => {
   }
 
   // recurse down through subviews
-  const contentView = node.contentView && node.contentView.subviews
+  const contentView = node.contentView && node.contentView.subviews;
   const subviews = node.subviews || contentView || [node.control];
 
   return subviews
@@ -56,10 +56,15 @@ const cli = readline.createInterface({
 cli.write(`Enter Q or ctrl + c to quit.\nEnter a selector to continue:\n`);
 
 cli.on(`line`, input => {
+  // quit CLI
   if (input == "Q") {
     cli.close();
     return;
   }
-  console.log(findMatches(data, input));
-  console.log(`Enter another selector to search again:`);
+  // find matches
+  const matches = findMatches(data, input);
+  console.log(`\nResults for "${input}":\n`);
+  console.log(matches);
+  console.log(`\nYour search returned ${matches.length} matches.\n`);
+  console.log(`Enter Q or ctrl + c to quit.\nEnter another selector to search again:`);
 });
